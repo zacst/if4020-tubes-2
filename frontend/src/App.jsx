@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Import useEffect
 import Layout from './components/Layout';
 import HomePage from './pages/Home';
 import IssueCertificatePage from './pages/IssueCertificate';
@@ -8,6 +8,15 @@ import TransactionsPage from './pages/Transactions';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('home');
+
+  // Check URL for "Magic Link" parameters on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    // If the URL has 'cid' or 'tx', automatically go to 'verify' page
+    if (params.get('cid') || params.get('tx')) {
+      setCurrentPage('verify');
+    }
+  }, []);
 
   const renderPage = () => {
     switch (currentPage) {
