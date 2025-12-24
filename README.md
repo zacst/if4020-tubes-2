@@ -133,6 +133,8 @@ npm install
 ```Code snippet
 
 VITE_CONTRACT_ADDRESS=0xAlamatContractAnda
+VITE_PINATA_API_KEY=APIKeyPinataAnda
+VITE_PINATA_SECRET_KEY=SecretKeyPinataAnda
 ```
 
 **Langkah 4: Jalankan Development Server**

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Upload, FileText, Lock, Check } from 'lucide-react';
 import { ethers } from 'ethers';
 import { mockUploadAndEncrypt, mockIssueCertificate } from '../utils/mockServices';
+import { encrypt_and_store, buildCertificateURL } from "../certificate/certificateUtils";
+import { hashCertificate, sign_hash } from "../crypto/cryptoUtils";
 
 const IssueCertificatePage = () => {
   // AUTH STATE
@@ -42,15 +44,25 @@ const IssueCertificatePage = () => {
     setLoading(true);
 
     try {
-      // Step A: Encrypt & Store (Member 2's Job)
-      const { cid, aesKey, fileHash } = await mockUploadAndEncrypt(pdfFile, formData);
+      // Get Signer
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      // Hash certificate
+      const buffer = await pdfFile.arrayBuffer();
+      const documentHash = hashCertificate(buffer);
+
+      // Sign hash using ECDSA
+      const signature = await sign_hash(documentHash, signer);
+
+      // Encrypt & Store to IPFS
+      const { cid, aesKey } = await encrypt_and_store(pdfFile);
 
       // Step B: Issue on Blockchain (Member 1's Job)
-      const { txHash } = await mockIssueCertificate(fileHash, cid);
+      const { txHash } = await mockIssueCertificate(documentHash, cid, signature);
 
-      // Step C: Generate Magic URL
       // This URL contains the location (CID), the Key (aesKey), and the ID (txHash)
-      const magicUrl = `${window.location.origin}/?cid=${cid}&key=${aesKey}&tx=${txHash}`;
+      const magicUrl = buildCertificateURL(cid, aesKey, txHash);
       setGeneratedLink(magicUrl);
 
     } catch (error) {
