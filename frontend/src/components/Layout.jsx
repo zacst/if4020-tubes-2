@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
-import { FileText, Upload, Search, Shield, XCircle, Home, Menu, X } from 'lucide-react';
+// 1. Added LogOut icon
+import { FileText, Upload, Search, Shield, XCircle, Home, Menu, X, LogOut } from 'lucide-react';
 
-const Layout = ({ children, currentPage, setCurrentPage }) => {
+// 2. Accept account, connect, and disconnect as props from App.js
+const Layout = ({ 
+  children, 
+  currentPage, 
+  setCurrentPage, 
+  account, 
+  connectWallet, 
+  disconnectWallet 
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'issue', label: 'Issue Certificate', icon: Upload, role: 'admin' },
@@ -11,6 +20,9 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
     { id: 'verify', label: 'Verify Certificate', icon: Search },
     { id: 'transactions', label: 'Transactions', icon: FileText },
   ];
+
+  // REMOVED: Internal useEffect and connectWallet function. 
+  // We now use the ones passed down from App.js to keep the whole app in sync.
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -30,6 +42,9 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
             <nav className="hidden md:flex space-x-1">
               {navItems.map(item => {
                 const Icon = item.icon;
+                // Optional: Hide admin items if not logged in (uncomment if desired)
+                // if (item.role === 'admin' && !account) return null; 
+
                 return (
                   <button
                     key={item.id}
@@ -55,11 +70,33 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* Wallet Connection (Desktop) */}
+            {/* Desktop Wallet & Logout Section */}
             <div className="hidden md:block">
-              <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
-                Connect Wallet
-              </button>
+              {account ? (
+                <div className="flex items-center space-x-3">
+                  {/* Address Display */}
+                  <div className="px-4 py-2 bg-gray-50 text-gray-700 rounded-lg font-mono text-sm border border-gray-200 flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    {account.slice(0, 6)}...{account.slice(-4)}
+                  </div>
+                  
+                  {/* Logout Button */}
+                  <button 
+                    onClick={disconnectWallet}
+                    className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                    title="Disconnect Wallet"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={connectWallet}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                >
+                  Connect Wallet
+                </button>
+              )}
             </div>
           </div>
 
@@ -86,10 +123,36 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
                   </button>
                 );
               })}
-              <div className="px-4 pt-4">
-                <button className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium">
-                  Connect Wallet
-                </button>
+              
+              {/* Mobile Wallet Section */}
+              <div className="px-4 pt-4 border-t border-gray-100 mt-2">
+                {account ? (
+                  <div className="space-y-3">
+                    <div className="w-full px-4 py-2 bg-gray-50 text-gray-600 rounded-lg font-mono text-sm text-center border border-gray-200">
+                      Connected: {account.slice(0, 6)}...{account.slice(-4)}
+                    </div>
+                    <button 
+                      onClick={() => {
+                        disconnectWallet();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-lg font-medium flex items-center justify-center space-x-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Disconnect Wallet</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      connectWallet();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium"
+                  >
+                    Connect Wallet
+                  </button>
+                )}
               </div>
             </div>
           )}
