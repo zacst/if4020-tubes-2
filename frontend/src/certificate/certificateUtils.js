@@ -4,6 +4,7 @@ import { uploadToIPFS } from "../storage/ipfs";
 
 // Melakukan enkripsi dan menyimpan file ijazah di IPFS
 export async function encrypt_and_store(file) {
+  // Generate Random Key
   const aesKey = CryptoJS.lib.WordArray.random(32).toString();
   const buffer = await file.arrayBuffer();
 
@@ -15,6 +16,7 @@ export async function encrypt_and_store(file) {
 
 // Fungsi membuat URL Ijazah agar bisa diverifikasi
 export function buildCertificateURL(cid, aesKey, txHash) {
-  const base = `${window.location.origin}/certificate`;
-  return `${base}?cid=${cid}&key=${aesKey}&tx=${txHash}`;
+  // Points to root because App.jsx router is there
+  const base = `${window.location.origin}/`;
+  return `${base}?id=${txHash}&cid=${cid}&key=${aesKey}`;
 }
